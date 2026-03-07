@@ -23,3 +23,15 @@ Python version : 3.14
 Pour trouver la liste de dépendances et les versions associées dans le fichier `requirements.txt`.
 
 ---
+
+## Structure
+
+- **Project 1** : Perceptron Simple
+
+- **Project 2** : Perceptron (Descente de Gradient + ADALINE)
+
+- **Project 3** : Perceptron Monocouche
+
+- **Project 4** : Perceptron Multicouche
+
+---
