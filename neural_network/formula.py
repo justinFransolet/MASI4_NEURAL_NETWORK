@@ -95,8 +95,19 @@ def derivative(func_type: ActivationFunction, y: float, c=1.0)-> float:
 #                Vecteurs
 # >@<----------------------------------->@<
 
-def dot_product(v1, v2):
+def dot_product(v1: list[float], v2: list[float])-> float:
+    """
+    Produit scalaire de deux vecteurs.
+    :param v1: Premier vecteur. Format : (x1, x2, ..., xn)
+    :param v2: Deuxième vecteur. Format : (y1, y2, ..., yn)
+    :return: Produit scalaire des deux vecteurs.
+    """
     return sum(x * y for x, y in zip(v1, v2))
 
-def matrix_transpose(matrix):
+def matrix_transpose(matrix: list[list[float]])-> list[list[float]]:
+    """
+    Transposée d'une matrice.
+    :param matrix: Matrice à transposer. Format : [[x1, x2, ..., xn],[y1,y2,...,yn],...,[z1,z2,...,zn]]
+    :return: Matrice transposée. Format : [[x1,y1,...,z1],[x2,y2,...,z2],...,[xn,yn,...,zn]]
+    """
     return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
