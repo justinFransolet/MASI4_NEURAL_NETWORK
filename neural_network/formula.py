@@ -47,7 +47,7 @@ def activate(func_type: ActivationFunction, x: float, c=1.0)-> float:
     elif func_type == ActivationFunction.IDENTITY:
         return identity(x)
     elif func_type == ActivationFunction.SIGMOID:
-        return sigmoid(c)
+        return sigmoid(x, c)
     elif func_type == ActivationFunction.TANH:
         return tanh(x)
     else:
