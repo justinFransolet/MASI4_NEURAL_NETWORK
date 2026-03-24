@@ -2,4 +2,5 @@
 
 from .formula import *
 from .layer import Layer
-from .neural_network import NeuralNetwork, TrainingType
+from .network import NeuralNetwork, TrainingType
+from .history import History, MetricType

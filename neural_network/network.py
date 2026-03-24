@@ -1,6 +1,8 @@
 ﻿#neural_network/neural_network.py
 
-from neural_network import derivative, Layer
+from .formula import derivative
+from .layer import Layer
+from .history import History
 from enum import Enum
 
 class TrainingType(Enum):
@@ -90,20 +92,21 @@ class NeuralNetwork:
                 else:
                     grad_b[l][j] += layer.deltas[j]
 
-    def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC):
-        history = []
+    def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, metrics=()):
+        # TODO : Implement metric monitoring
+        history = History(metrics)
         n_samples = len(x_train)
         is_stochastic = (strategy == TrainingType.STOCHASTIC)
 
         for epoch in range(epochs):
-            total_error = 0
             # Initialisation des accumulateurs si Batch
             grad_w, grad_b = self._init_gradients() if not is_stochastic else (None, None)
 
             for i in range(n_samples):
                 # 1. Forward
                 y_pred = self.predict(x_train[i])
-                total_error += sum(0.5 * (yt - yp) ** 2 for yt, yp in zip(y_train[i], y_pred))
+                # Somme des erreurs quadratiques
+                history.calculate_mse(y_train[i], y_pred)
 
                 # 2. Backward
                 self._backward_pass(y_train[i], y_pred)
@@ -114,7 +117,5 @@ class NeuralNetwork:
             # Mise à jour finale pour le Full-Batch
             if not is_stochastic:
                 self._apply_batch_update(grad_w, grad_b, learning_rate, n_samples)
-
-            history.append(total_error / n_samples)
 
         return history

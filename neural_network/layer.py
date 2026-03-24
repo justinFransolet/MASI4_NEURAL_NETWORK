@@ -1,7 +1,7 @@
 ﻿# neural_network/layer.py
 
 import random
-from neural_network import dot_product, activate, ActivationFunction
+from .formula import dot_product, activate, ActivationFunction
 
 class Layer:
     """
