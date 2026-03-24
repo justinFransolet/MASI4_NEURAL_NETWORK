@@ -76,7 +76,7 @@ class NeuralNetwork:
                 deriv = derivative(current_layer.last_outputs[j], current_layer.activation)
                 current_layer.deltas.append(error_signal * deriv)
 
-    def _update_weights(self, learning_rate: float, grad_w: list[list[list[float]]], grad_b: list[list[float]], is_stochastic=True):
+    def _update_weights(self, learning_rate: float, grad_w: list[list[list[float]]] | None, grad_b: list[list[float]] | None, is_stochastic=True):
         """Applique la correction aux poids et biais."""
         for l, layer in enumerate(self.__layers):
             for j in range(len(layer.weights)):
