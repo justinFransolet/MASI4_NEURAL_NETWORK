@@ -16,20 +16,25 @@ class History:
     def metrics(self)-> dict:
         return self._metrics
 
-    def execute_mse(self, y_true: list[float], y_pred: list[float])-> None:
+    def log_mse(self, y_true: list[list[float]], y_pred: list[list[float]])-> None:
         """
         Executer le calcul de l'Erreur Quadratique Moyenne (MSE).
         Attention : Utilisable seulement pour de la régression
 
-        :param y_true: Les valeurs réelles.
-        :param y_pred: Les valeurs prédites.
+        :param y_true: Les valeurs réelles de l'époque.
+        :param y_pred: Les valeurs prédites de l'époque.
         :raise ValueError: Si les listes ne sont pas de même taille.
         """
         if len(y_true) != len(y_pred):
             raise ValueError("Les listes doivent avoir la même taille.")
-        self._metrics['mse'].append(calculate_mse(y_true, y_pred))
+        cumulative_error = 0.0
+        for i in range(len(y_true)):
+            cumulative_error += calculate_mse(y_true[i], y_pred[i])
 
-    def execute_accuracy(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+        epoch_mse = cumulative_error / len(y_true)
+        self._metrics['mse'].append(epoch_mse)
+
+    def log_accuracy(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
         """
         Executer le calcul de l'accuracy.
 
@@ -40,7 +45,7 @@ class History:
         value = calculate_accuracy(y_true, y_pred_probs, threshold)
         self._metrics['accuracy'].append(value)
 
-    def execute_precision(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_precision(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
         """
         Executer le calcul de la précision.
 
@@ -51,7 +56,7 @@ class History:
         value = calculate_precision(y_true,y_pred_probs, threshold)
         self._metrics['precision'].append(value)
 
-    def execute_recall(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_recall(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
         """
         Executer le calcul du recall.
 
@@ -62,7 +67,7 @@ class History:
         value = calculate_recall(y_true, y_pred_probs, threshold)
         self._metrics['recall'].append(value)
 
-    def execute_f1_score(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_f1_score(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
         """
         Executer le calcul du f1 score.
 
@@ -73,7 +78,7 @@ class History:
         value = calculate_f1_score(y_true, y_pred_probs, threshold)
         self._metrics['f1_score'].append(value)
 
-    def execute_roc(self, y_true: list[float], y_pred_probs: list[float])-> None:
+    def log_roc(self, y_true: list[float], y_pred_probs: list[float])-> None:
         """
         Executer le calcul de la courbe ROC_AUC.
 

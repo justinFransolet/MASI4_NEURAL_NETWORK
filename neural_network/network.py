@@ -99,14 +99,16 @@ class NeuralNetwork:
         is_stochastic = (strategy == TrainingType.STOCHASTIC)
 
         for epoch in range(epochs):
+            # Début d'époque
             # Initialisation des accumulateurs si Batch
             grad_w, grad_b = self._init_gradients() if not is_stochastic else (None, None)
 
+            # Boucle sur les échantillons
+            list_y_pred = []
             for i in range(n_samples):
                 # 1. Forward
                 y_pred = self.predict(x_train[i])
-                # Somme des erreurs quadratiques
-                history.execute_mse(y_train[i], y_pred)
+                list_y_pred.append(y_pred)
 
                 # 2. Backward
                 self._backward_pass(y_train[i], y_pred)
@@ -114,6 +116,9 @@ class NeuralNetwork:
                 # 3. Mise à jour ou Accumulation
                 self._update_weights(learning_rate, grad_w, grad_b, is_stochastic)
 
+            # Fin d'époque
+            # Log des metrics
+            history.log_mse(y_train, list_y_pred)
             # Mise à jour finale pour le Full-Batch
             if not is_stochastic:
                 self._apply_batch_update(grad_w, grad_b, learning_rate, n_samples)

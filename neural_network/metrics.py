@@ -15,11 +15,13 @@ def calculate_mse(y_true: list[float], y_pred: list[float])-> float:
     """
     Calcule l'Erreur Quadratique Moyenne (MSE).
 
-    :param y_true: Les valeurs réelles.
-    :param y_pred: Les valeurs prédites.
+    :param y_true: La valeur réelle de l'échantillion.
+    :param y_pred: La valeur prédite de l'échantillion.
     """
     n = len(y_true)
-    return sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred)) / n
+    if n == 0:
+        raise ArithmeticError("Impossible de diviser par 0.")
+    return sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred))
 
 def calculate_accuracy(y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> float:
     """
