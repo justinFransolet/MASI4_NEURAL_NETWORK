@@ -111,3 +111,31 @@ def matrix_transpose(matrix: list[list[float]])-> list[list[float]]:
     :return: Matrice transposée. Format : [[x1,y1,...,z1],[x2,y2,...,z2],...,[xn,yn,...,zn]]
     """
     return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
+
+def matrix_confusion(y_true: list[float], y_pred_probs: list[float], threshold=0.5):
+    """
+    Calcule TP, TN, FP, FN en appliquant un seuil sur les probabilités.
+
+    :param y_true: Les valeurs réelles.
+    :param y_pred_probs: La probabilité que la valeur appartient à la classe.
+    :param threshold: La valeur limite pour être dans une catégorie
+    :raise ValueError: Si les listes ne sont pas de même taille.
+    """
+    if len(y_true) != len(y_pred_probs):
+        raise ValueError("Les listes doivent avoir la même taille.")
+
+    tp = tn = fp = fn = 0
+    for yt, yp_prob in zip(y_true, y_pred_probs):
+        # Binarisation de la prédiction selon le seuil
+        yp = 1 if yp_prob >= threshold else 0
+
+        if yt == 1 and yp == 1:
+            tp += 1
+        elif yt == 0 and yp == 0:
+            tn += 1
+        elif yt == 0 and yp == 1:
+            fp += 1
+        elif yt == 1 and yp == 0:
+            fn += 1
+
+    return tp, tn, fp, fn
