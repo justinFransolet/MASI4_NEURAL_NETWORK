@@ -115,6 +115,7 @@ def matrix_transpose(matrix: list[list[float]])-> list[list[float]]:
 def matrix_confusion(y_true: list[float], y_pred_probs: list[float], threshold=0.5):
     """
     Calcule TP, TN, FP, FN en appliquant un seuil sur les probabilités.
+    TP => True Positive | TN => True Negative | FP => False Positive | FN => False Negative
 
     :param y_true: Les valeurs réelles.
     :param y_pred_probs: La probabilité que la valeur appartient à la classe.
@@ -125,9 +126,9 @@ def matrix_confusion(y_true: list[float], y_pred_probs: list[float], threshold=0
         raise ValueError("Les listes doivent avoir la même taille.")
 
     tp = tn = fp = fn = 0
-    for yt, yp_prob in zip(y_true, y_pred_probs):
+    for yt, yp in zip(y_true, y_pred_probs):
         # Binarisation de la prédiction selon le seuil
-        yp = 1 if yp_prob >= threshold else 0
+        yp = 1 if yp >= threshold else 0
 
         if yt == 1 and yp == 1:
             tp += 1
