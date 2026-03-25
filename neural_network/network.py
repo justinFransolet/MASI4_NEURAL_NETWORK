@@ -106,7 +106,7 @@ class NeuralNetwork:
                 # 1. Forward
                 y_pred = self.predict(x_train[i])
                 # Somme des erreurs quadratiques
-                history.calculate_mse(y_train[i], y_pred)
+                history.execute_mse(y_train[i], y_pred)
 
                 # 2. Backward
                 self._backward_pass(y_train[i], y_pred)
