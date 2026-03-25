@@ -88,7 +88,9 @@ class NeuralNetwork:
         output_layer = self.__layers[-1]
         output_layer.deltas = []
         for j in range(len(output_layer.weights)):
+            # Calcul de l'erreur local
             error_signal = y_pred[j] - y_true[j]
+            # Appliquer la dérivée de la fonction d'activation
             deriv = derivative(output_layer.activation, y_pred[j])
             output_layer.deltas.append(error_signal * deriv)
 
@@ -99,9 +101,11 @@ class NeuralNetwork:
             current_layer.deltas = []
 
             for j in range(len(current_layer.weights)):
-                error_signal = sum(next_layer.deltas[k] * next_layer.weights[k][j]
-                                   for k in range(len(next_layer.weights)))
-                deriv = derivative(current_layer.last_outputs[j], current_layer.activation)
+                # Somme pondérée des deltas de la couche suivante
+                error_signal = sum(next_layer.deltas[k] * next_layer.weights[k][j] for k in range(len(next_layer.weights)))
+                # IMPORTANT : La dérivée utilise la sortie mémorisée du neurone lors du forward
+                # On passe d'abord la valeur, puis le type d'activation
+                deriv = derivative(current_layer.activation, current_layer.last_outputs[j])
                 current_layer.deltas.append(error_signal * deriv)
 
     def _update_weights(self, learning_rate: float, grad_w: list[list[list[float]]] | None, grad_b: list[list[float]] | None, is_stochastic=True):
