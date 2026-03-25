@@ -1,6 +1,6 @@
 ﻿#neural_network/neural_network.py
-
-from .formula import derivative
+from .metrics import MetricType
+from .formula import derivative, matrix_confusion
 from .layer import Layer
 from .history import History
 from enum import Enum
@@ -8,6 +8,34 @@ from enum import Enum
 class TrainingType(Enum):
     STOCHASTIC = 'stochastic'
     FULL_BATCH = 'full_batch'
+
+def _log_epoch_metrics(history: History, metrics: tuple, y_true: list[list[float]], y_pred: list[list[float]], threshold: float):
+    """Calcule et enregistre les métriques demandées pour l'époque actuelle."""
+
+    if MetricType.MSE in metrics:
+        history.log_mse(y_true, y_pred)
+
+    # 2. Métriques de Classification - Nécessitent des listes plates pour matrix_confusion
+    # On aplatit les données pour traiter l'ensemble des prédictions du réseau
+    y_true_flat = [val for sublist in y_true for val in sublist]
+    y_pred_flat = [val for sublist in y_pred for val in sublist]
+
+    tp, tn, fp, fn = matrix_confusion(y_true_flat, y_pred_flat, threshold)
+
+    if MetricType.ACCURACY in metrics:
+        history.log_accuracy(tp, tn, fp, fn)
+
+    if MetricType.PRECISION in metrics:
+        history.log_precision(tp, fp)
+
+    if MetricType.RECALL in metrics:
+        history.log_recall(tp, fn)
+
+    if MetricType.F1_SCORE in metrics:
+        history.log_f1_score(tp, fp, fn)
+
+    if MetricType.ROC_AUC in metrics:
+        history.log_roc(y_true_flat, y_pred_flat)
 
 class NeuralNetwork:
     """
@@ -93,7 +121,6 @@ class NeuralNetwork:
                     grad_b[l][j] += layer.deltas[j]
 
     def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, metrics=()):
-        # TODO : Implement metric monitoring
         history = History(metrics)
         n_samples = len(x_train)
         is_stochastic = (strategy == TrainingType.STOCHASTIC)
@@ -117,8 +144,8 @@ class NeuralNetwork:
                 self._update_weights(learning_rate, grad_w, grad_b, is_stochastic)
 
             # Fin d'époque
-            # Log des metrics
-            history.log_mse(y_train, list_y_pred)
+            _log_epoch_metrics(history, metrics, y_train, list_y_pred, 0.5)
+
             # Mise à jour finale pour le Full-Batch
             if not is_stochastic:
                 self._apply_batch_update(grad_w, grad_b, learning_rate, n_samples)

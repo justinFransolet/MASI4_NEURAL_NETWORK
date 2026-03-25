@@ -34,48 +34,47 @@ class History:
         epoch_mse = cumulative_error / len(y_true)
         self._metrics['mse'].append(epoch_mse)
 
-    def log_accuracy(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_accuracy(self, tp: int, tn: int, fp: int, fn: int)-> None:
         """
         Executer le calcul de l'accuracy.
 
-        :param y_true: Les valeurs réelles.
-        :param y_pred_probs: La probabilité que la valeur appartient à la classe.
-        :param threshold: La valeur limite pour être dans une catégorie.
+        :param tp: True Positive
+        :param tn: True Negative
+        :param fp: False Positive
+        :param fn: False Negative
         """
-        value = calculate_accuracy(y_true, y_pred_probs, threshold)
+        value = calculate_accuracy(tp, tn, fp, fn)
         self._metrics['accuracy'].append(value)
 
-    def log_precision(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_precision(self, tp: int, fp: int)-> None:
         """
         Executer le calcul de la précision.
 
-        :param y_true: Les valeurs réelles.
-        :param y_pred_probs: La probabilité que la valeur appartient à la classe.
-        :param threshold: La valeur limite pour être dans une catégorie.
+        :param tp: True Positive
+        :param fp: False Positive
         """
-        value = calculate_precision(y_true,y_pred_probs, threshold)
+        value = calculate_precision(tp,fp)
         self._metrics['precision'].append(value)
 
-    def log_recall(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_recall(self, tp: int, fn: int)-> None:
         """
         Executer le calcul du recall.
 
-        :param y_true: Les valeurs réelles.
-        :param y_pred_probs: La probabilité que la valeur appartient à la classe.
-        :param threshold: La valeur limite pour être dans une catégorie.
+        :param tp: True Positive
+        :param fn: False Negative
         """
-        value = calculate_recall(y_true, y_pred_probs, threshold)
+        value = calculate_recall(tp, fn)
         self._metrics['recall'].append(value)
 
-    def log_f1_score(self, y_true: list[float], y_pred_probs: list[float], threshold=0.5)-> None:
+    def log_f1_score(self, tp: int, fp: int, fn: int)-> None:
         """
         Executer le calcul du f1 score.
 
-        :param y_true: Les valeurs réelles.
-        :param y_pred_probs: La probabilité que la valeur appartient à la classe.
-        :param threshold: La valeur limite pour être dans une catégorie.
+        :param tp: True Positive
+        :param fp: False Positive
+        :param fn: False Negative
         """
-        value = calculate_f1_score(y_true, y_pred_probs, threshold)
+        value = calculate_f1_score(tp, fp, fn)
         self._metrics['f1_score'].append(value)
 
     def log_roc(self, y_true: list[float], y_pred_probs: list[float])-> None:
