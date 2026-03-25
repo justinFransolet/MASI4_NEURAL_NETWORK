@@ -69,11 +69,9 @@ def calculate_f1_score(tp: int, fp: int, fn: int)-> float:
     recall = calculate_recall(tp, fn)
 
     if (precision + recall) > 0:
-        value = 2 * (precision * recall) / (precision + recall)
+        return 2 * ((precision * recall) / (precision + recall))
     else:
-        value = 0.0
-
-    return value
+        return 0.0
 
 def calculate_roc_auc(y_true: list[float], y_pred_probs: list[float])-> float:
     """
