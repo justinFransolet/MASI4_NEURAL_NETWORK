@@ -9,6 +9,35 @@ class TrainingType(Enum):
     STOCHASTIC = 'stochastic'
     FULL_BATCH = 'full_batch'
 
+
+def _format_values(values: list[float], precision: int = 2) -> str:
+    return ", ".join(f"{v:.{precision}f}" for v in values)
+
+def _log_sample_details(x_sample: list[float], y_true: list[float], y_pred: list[float], sample_error: float, layers: list[Layer], verbose: bool,) -> None:
+    if not verbose:
+        return
+
+    x_str = ", ".join(f"{v:.0f}" for v in x_sample)
+    d_str = _format_values(y_true, precision=3)
+    y_str = _format_values(y_pred, precision=3)
+
+    layer_summaries = []
+    for index, layer in enumerate(layers, start=1):
+        biases_str = _format_values(layer.biases, precision=2)
+        flat_weights = [w for neuron_weights in layer.weights for w in neuron_weights]
+        weights_str = _format_values(flat_weights, precision=2)
+        layer_summaries.append(f"L{index}: b=[{biases_str}], w=[{weights_str}]")
+
+    print(
+        f"x=[{x_str}], d=[{d_str}], y=[{y_str}], mse={sample_error:.6f}"
+        + (f", {' | '.join(layer_summaries)}" if layer_summaries else "")
+    )
+
+
+def _log(text: str, verbose: bool)-> None:
+    if verbose:
+        print(text)
+
 def _log_epoch_metrics(history: History, metrics: tuple, y_true: list[list[float]], y_pred: list[list[float]], threshold: float):
     """Calcule et enregistre les métriques demandées pour l'époque actuelle."""
 
@@ -124,12 +153,13 @@ class NeuralNetwork:
                 else:
                     grad_b[l][j] += layer.deltas[j]
 
-    def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, metrics=()):
+    def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, verbose=False, metrics=()):
         history = History(metrics)
         n_samples = len(x_train)
         is_stochastic = (strategy == TrainingType.STOCHASTIC)
 
         for epoch in range(epochs):
+            _log(f"\n---- Epoch {epoch + 1} ----", verbose)
             # Début d'époque
             # Initialisation des accumulateurs si Batch
             grad_w, grad_b = self._init_gradients() if not is_stochastic else (None, None)
@@ -146,6 +176,15 @@ class NeuralNetwork:
 
                 # 3. Mise à jour ou Accumulation
                 self._update_weights(learning_rate, grad_w, grad_b, is_stochastic)
+
+                _log_sample_details(
+                    x_sample=x_train[i],
+                    y_true=y_train[i],
+                    y_pred=y_pred,
+                    sample_error=0,
+                    layers=self.__layers,
+                    verbose=verbose,
+                )
 
             # Fin d'époque
             _log_epoch_metrics(history, metrics, y_train, list_y_pred, 0.5)
