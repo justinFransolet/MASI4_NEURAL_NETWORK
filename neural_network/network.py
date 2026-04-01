@@ -157,6 +157,20 @@ class NeuralNetwork:
                         raise AttributeError("Attribut manquant : grad_b")
                     grad_b[l][j] += layer.deltas[j]
 
+    def _is_sample_error(
+            self,
+            y_true: list[float],
+            y_pred: list[float],
+            threshold: float = 0.5
+    ) -> bool:
+        """
+        Retourne True si l'échantillon est mal classé, sinon False.
+        On binarise y_pred avec un seuil, puis on compare à y_true.
+        """
+        y_pred_class = [1 if value >= threshold else 0 for value in y_pred]
+        y_true_class = [1 if value >= threshold else 0 for value in y_true]
+        return y_pred_class != y_true_class
+
     def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, verbose=False, metrics=()):
         history = History(metrics)
         n_samples = len(x_train)
@@ -164,6 +178,10 @@ class NeuralNetwork:
 
         for epoch in range(epochs):
             _log(f"\n---- Epoch {epoch + 1} ----", verbose)
+
+            # Compteur d'erreurs pour l'époque
+            nb_errors = 0
+
             # Début d'époque
             # Initialisation des accumulateurs si Batch
             grad_w, grad_b = self._init_gradients() if not is_stochastic else (None, None)
@@ -175,11 +193,18 @@ class NeuralNetwork:
                 y_pred = self.predict(x_train[i])
                 list_y_pred.append(y_pred)
 
-                # 2. Backward
-                self._backward_pass(y_train[i], y_pred)
+                # 2. Vérifier si erreur
+                sample_has_error = self._is_sample_error(y_train[i], y_pred, threshold=0.5)
 
-                # 3. Mise à jour ou Accumulation
-                self._update_weights(learning_rate, grad_w, grad_b, is_stochastic)
+                # Modification UNIQUEMENT si erreur
+                if sample_has_error:
+                    nb_errors += 1
+
+                    # 3. Backward uniquement si erreur
+                    self._backward_pass(y_train[i], y_pred)
+
+                    # 4. Update uniquement si erreur
+                    self._update_weights(learning_rate, grad_w, grad_b, is_stochastic)
 
                 _log_sample_details(
                     x_sample=x_train[i],
@@ -196,5 +221,12 @@ class NeuralNetwork:
             # Mise à jour finale pour le Full-Batch
             if not is_stochastic:
                 self._apply_batch_update(grad_w, grad_b, learning_rate, n_samples)
+
+            _log(f"nbErreurs = {nb_errors}", verbose)
+
+            # Arrêt anticipé si aucune erreur sur l'époque
+            if nb_errors == 0:
+                _log("Arrêt anticipé : nbErreurs = 0", verbose)
+                break
 
         return history
