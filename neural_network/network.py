@@ -146,11 +146,15 @@ class NeuralNetwork:
                     if is_stochastic:
                         layer.weights[j][k] -= learning_rate * gradient
                     else:
+                        if grad_w is None:
+                            raise AttributeError("Attribut manquant : grad_w")
                         grad_w[l][j][k] += gradient
 
                 if is_stochastic:
                     layer.biases[j] -= learning_rate * layer.deltas[j]
                 else:
+                    if grad_b is None:
+                        raise AttributeError("Attribut manquant : grad_b")
                     grad_b[l][j] += layer.deltas[j]
 
     def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, verbose=False, metrics=()):
