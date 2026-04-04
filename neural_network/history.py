@@ -7,6 +7,7 @@ class History:
 
     def __init__(self, metrics = ()):
         self._metrics = {}
+        self._params_history = []
 
         # Initialisation des listes de métriques
         for metric in metrics:
@@ -15,6 +16,12 @@ class History:
     @property
     def metrics(self)-> dict:
         return self._metrics
+
+    def log_params(self, bias: float, weights: list[float]) -> None:
+        self._params_history.append({
+            "bias": bias,
+            "weights": weights[:]
+        })
 
     def log_mse(self, y_true: list[list[float]], y_pred: list[list[float]])-> None:
         """

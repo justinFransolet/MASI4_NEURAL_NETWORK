@@ -222,6 +222,13 @@ class NeuralNetwork:
             if not is_stochastic:
                 self._apply_batch_update(grad_w, grad_b, learning_rate, n_samples)
 
+            # Sauvegarde des paramètres pour tracer la frontière de décision
+            if len(self.__layers) == 1 and len(self.__layers[0].weights) == 1:
+                history.log_params(
+                    bias=self.__layers[0].biases[0],
+                    weights=self.__layers[0].weights[0]
+                )
+
             _log(f"nbErreurs = {nb_errors}", verbose)
 
             # Arrêt anticipé si aucune erreur sur l'époque
