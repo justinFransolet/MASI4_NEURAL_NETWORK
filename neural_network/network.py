@@ -171,7 +171,7 @@ class NeuralNetwork:
         y_true_class = [1 if value >= threshold else 0 for value in y_true]
         return y_pred_class != y_true_class
 
-    def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, verbose=False, metrics=()):
+    def train(self, x_train: list[list[float]], y_train: list[list[float]], epochs: int, learning_rate: float, strategy=TrainingType.STOCHASTIC, verbose=False, metrics=(), update_on_error_only: bool = True, mse_threshold: float | None = None, classification_threshold: float = 0.5):
         history = History(metrics)
         n_samples = len(x_train)
         is_stochastic = (strategy == TrainingType.STOCHASTIC)
@@ -193,13 +193,20 @@ class NeuralNetwork:
                 y_pred = self.predict(x_train[i])
                 list_y_pred.append(y_pred)
 
+                sample_mse = self._compute_sample_mse(y_train[i], y_pred)
+
                 # 2. Vérifier si erreur
-                sample_has_error = self._is_sample_error(y_train[i], y_pred, threshold=0.5)
+                sample_has_error = self._is_sample_error(y_train[i], y_pred, threshold=classification_threshold)
 
                 # Modification UNIQUEMENT si erreur
                 if sample_has_error:
                     nb_errors += 1
 
+                # Cas perceptron simple : update seulement s'il y a erreur de classe
+                # Cas gradient / ADALINE : update sur chaque exemple
+                should_update = sample_has_error if update_on_error_only else True
+
+                if should_update:
                     # 3. Backward uniquement si erreur
                     self._backward_pass(y_train[i], y_pred)
 
@@ -210,17 +217,20 @@ class NeuralNetwork:
                     x_sample=x_train[i],
                     y_true=y_train[i],
                     y_pred=y_pred,
-                    sample_error=0,
+                    sample_error=sample_mse,
                     layers=self.__layers,
                     verbose=verbose,
                 )
 
-            # Fin d'époque
-            _log_epoch_metrics(history, metrics, y_train, list_y_pred, 0.5)
-
             # Mise à jour finale pour le Full-Batch
             if not is_stochastic:
                 self._apply_batch_update(grad_w, grad_b, learning_rate, n_samples)
+
+            # Recalcul des prédictions de l'époque avec les poids finaux de l'époque
+            epoch_y_pred = [self.predict(x) for x in x_train]
+
+            # Fin d'époque
+            _log_epoch_metrics(history, metrics, y_train, epoch_y_pred, classification_threshold)
 
             # Sauvegarde des paramètres pour tracer la frontière de décision
             if len(self.__layers) == 1 and len(self.__layers[0].weights) == 1:
@@ -229,11 +239,29 @@ class NeuralNetwork:
                     weights=self.__layers[0].weights[0]
                 )
 
-            _log(f"nbErreurs = {nb_errors}", verbose)
+            epoch_mse = None
+            if MetricType.MSE in metrics:
+                epoch_mse = history.metrics[MetricType.MSE.value][-1]
 
-            # Arrêt anticipé si aucune erreur sur l'époque
-            if nb_errors == 0:
-                _log("Arrêt anticipé : nbErreurs = 0", verbose)
-                break
+            _log(f"nbErreurs = {nb_errors}", verbose)
+            if epoch_mse is not None:
+                _log(f"MSE = {epoch_mse:.6f}", verbose)
+
+            # Arrêt anticipé
+            if update_on_error_only:
+                # mode perceptron simple
+                if nb_errors == 0:
+                    _log("Arrêt anticipé : nbErreurs = 0", verbose)
+                    break
+            else:
+                # mode descente du gradient / ADALINE
+                if mse_threshold is not None and epoch_mse is not None and epoch_mse <= mse_threshold:
+                    _log(f"Arrêt anticipé : MSE <= {mse_threshold}", verbose)
+                    break
 
         return history
+
+    def _compute_sample_mse(self, y_true: list[float], y_pred: list[float]) -> float:
+        if len(y_true) == 0:
+            raise ArithmeticError("Impossible de diviser par 0.")
+        return sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred)) / len(y_true)

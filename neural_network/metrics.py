@@ -20,7 +20,7 @@ def calculate_mse(y_true: list[float], y_pred: list[float])-> float:
     n = len(y_true)
     if n == 0:
         raise ArithmeticError("Impossible de diviser par 0.")
-    return sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred))
+    return sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred)) / n
 
 def calculate_accuracy(tp: int, tn: int, fp: int, fn: int)-> float:
     """
