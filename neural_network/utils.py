@@ -167,3 +167,125 @@ def print_predictions(model, x_data, y_data=None, classification: bool = True, t
                 print(f"x={x} -> y_pred={output} | attendu={y_data[i]}")
             else:
                 print(f"x={x} -> y_pred={output}")
+
+
+def print_multiclass_predictions(model, x_data, y_data):
+    """
+    Affiche les prédictions d'un modèle multiclasses.
+    La classe prédite et la classe attendue sont obtenues avec argmax.
+    """
+    for x, y_true in zip(x_data, y_data):
+        y_pred = model.predict(x)
+        pred_class = y_pred.index(max(y_pred))
+        true_class = y_true.index(max(y_true))
+        print(f"x={x} -> y_pred={y_pred} -> classe_pred={pred_class} | classe_attendue={true_class}")
+
+
+def multiclass_accuracy(model, x_data, y_data):
+    """
+    Calcule l'accuracy pour un problème multiclasses.
+    """
+    correct = 0
+    total = len(x_data)
+
+    for x, y_true in zip(x_data, y_data):
+        y_pred = model.predict(x)
+        pred_class = y_pred.index(max(y_pred))
+        true_class = y_true.index(max(y_true))
+
+        if pred_class == true_class:
+            correct += 1
+
+    return correct / total if total > 0 else 0.0
+
+
+def plot_multiclass_decision_boundaries_2d(model, x_data, y_data, title: str = "Frontières de décision multiclasses", threshold: float = 0.5):
+    """
+    Affiche un dataset 2D multiclasses et les droites de décision
+    d'un perceptron monocouche.
+    """
+    plt.figure(figsize=(8, 6))
+
+    n_classes = len(y_data[0])
+    markers = ["o", "s", "^", "D", "x", "*"]
+
+    class_points_x = [[] for _ in range(n_classes)]
+    class_points_y = [[] for _ in range(n_classes)]
+
+    for x, y in zip(x_data, y_data):
+        true_class = y.index(max(y))
+        class_points_x[true_class].append(x[0])
+        class_points_y[true_class].append(x[1])
+
+    for c in range(n_classes):
+        plt.scatter(
+            class_points_x[c],
+            class_points_y[c],
+            label=f"Classe {c + 1}",
+            marker=markers[c % len(markers)]
+        )
+
+    layer = model._NeuralNetwork__layers[0]
+
+    x1_min = min(x[0] for x in x_data) - 1
+    x1_max = max(x[0] for x in x_data) + 1
+    x1_values = [x1_min, x1_max]
+
+    for j in range(len(layer.weights)):
+        bias = layer.biases[j]
+        w1 = layer.weights[j][0]
+        w2 = layer.weights[j][1]
+
+        if abs(w2) > 1e-12:
+            x2_values = [(threshold - bias - w1 * x1) / w2 for x1 in x1_values]
+            plt.plot(x1_values, x2_values, label=f"P{j + 1}")
+        elif abs(w1) > 1e-12:
+            x_vertical = (threshold - bias) / w1
+            plt.axvline(x=x_vertical, label=f"P{j + 1}")
+
+    plt.title(title)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_5x5_samples_with_predictions(model, x_data, y_data, max_samples: int = 12):
+    """
+    Affiche des échantillons 5x5 avec leur classe vraie et leur classe prédite.
+    Adapté à la table 3.5.
+    """
+    n_samples = min(max_samples, len(x_data))
+    cols = 4
+    rows = (n_samples + cols - 1) // cols
+
+    fig, axes = plt.subplots(rows, cols, figsize=(10, 2.8 * rows))
+    axes = axes.flatten()
+
+    for i in range(n_samples):
+        x = x_data[i]
+        y_true = y_data[i]
+        y_pred = model.predict(x)
+
+        true_class = y_true.index(max(y_true))
+        pred_class = y_pred.index(max(y_pred))
+
+        image = []
+        for r in range(5):
+            row = []
+            for c in range(5):
+                row.append(x[r * 5 + c])
+            image.append(row)
+
+        axes[i].imshow(image, cmap="gray_r")
+        axes[i].set_title(f"Vraie: {true_class} / Préd: {pred_class}")
+        axes[i].set_xticks([])
+        axes[i].set_yticks([])
+
+    for j in range(n_samples, len(axes)):
+        axes[j].axis("off")
+
+    plt.tight_layout()
+    plt.show()
