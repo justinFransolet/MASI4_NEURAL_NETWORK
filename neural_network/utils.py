@@ -337,3 +337,266 @@ def plot_decision_boundary_history(history, x_data, y_data, title: str = "Évolu
     plt.legend()
     plt.tight_layout()
     plt.show()
+
+
+def plot_binary_decision_regions_2d(model, x_data, y_data, title: str = "Régions de décision binaires", threshold: float = 0.5, step: float = 0.02):
+    """
+    Affiche les régions de décision pour une classification binaire 2D.
+    Adapté aux perceptrons multicouches.
+    """
+    import matplotlib.pyplot as plt
+
+    x1_min = min(x[0] for x in x_data) - 1
+    x1_max = max(x[0] for x in x_data) + 1
+    x2_min = min(x[1] for x in x_data) - 1
+    x2_max = max(x[1] for x in x_data) + 1
+
+    xx = []
+    yy = []
+    x1 = x1_min
+    while x1 <= x1_max:
+        row_x = []
+        row_y = []
+        x2 = x2_min
+        while x2 <= x2_max:
+            row_x.append(x1)
+            row_y.append(x2)
+            x2 += step
+        xx.append(row_x)
+        yy.append(row_y)
+        x1 += step
+
+    zz = []
+    for i in range(len(xx)):
+        row_z = []
+        for j in range(len(xx[i])):
+            pred = model.predict([xx[i][j], yy[i][j]])[0]
+            row_z.append(1 if pred >= threshold else 0)
+        zz.append(row_z)
+
+    plt.figure(figsize=(8, 6))
+    plt.contourf(xx, yy, zz, alpha=0.3)
+
+    points_0_x = []
+    points_0_y = []
+    points_1_x = []
+    points_1_y = []
+
+    for x, y in zip(x_data, y_data):
+        if y[0] == 0:
+            points_0_x.append(x[0])
+            points_0_y.append(x[1])
+        else:
+            points_1_x.append(x[0])
+            points_1_y.append(x[1])
+
+    plt.scatter(points_0_x, points_0_y, label="Classe 0")
+    plt.scatter(points_1_x, points_1_y, label="Classe 1")
+
+    plt.title(title)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_multiclass_decision_regions_2d(model, x_data, y_data, title: str = "Régions de décision multiclasses", step: float = 0.02):
+    """
+    Affiche les régions de décision pour une classification multiclasses 2D.
+    La classe prédite est obtenue avec argmax.
+    """
+    import matplotlib.pyplot as plt
+
+    x1_min = min(x[0] for x in x_data) - 1
+    x1_max = max(x[0] for x in x_data) + 1
+    x2_min = min(x[1] for x in x_data) - 1
+    x2_max = max(x[1] for x in x_data) + 1
+
+    xx = []
+    yy = []
+    x1 = x1_min
+    while x1 <= x1_max:
+        row_x = []
+        row_y = []
+        x2 = x2_min
+        while x2 <= x2_max:
+            row_x.append(x1)
+            row_y.append(x2)
+            x2 += step
+        xx.append(row_x)
+        yy.append(row_y)
+        x1 += step
+
+    zz = []
+    for i in range(len(xx)):
+        row_z = []
+        for j in range(len(xx[i])):
+            pred = model.predict([xx[i][j], yy[i][j]])
+            pred_class = pred.index(max(pred))
+            row_z.append(pred_class)
+        zz.append(row_z)
+
+    plt.figure(figsize=(8, 6))
+    plt.contourf(xx, yy, zz, alpha=0.3)
+
+    n_classes = len(y_data[0])
+    markers = ["o", "s", "^", "D", "x", "*"]
+
+    class_points_x = [[] for _ in range(n_classes)]
+    class_points_y = [[] for _ in range(n_classes)]
+
+    for x, y in zip(x_data, y_data):
+        true_class = y.index(max(y))
+        class_points_x[true_class].append(x[0])
+        class_points_y[true_class].append(x[1])
+
+    for c in range(n_classes):
+        plt.scatter(
+            class_points_x[c],
+            class_points_y[c],
+            label=f"Classe {c + 1}",
+            marker=markers[c % len(markers)]
+        )
+
+    plt.title(title)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_regression_curve(model, x_data, y_data, title: str = "Régression non linéaire"):
+    """
+    Affiche les valeurs réelles et la courbe prédite triée selon x.
+    Adapté aux problèmes de régression 1D.
+    """
+    import matplotlib.pyplot as plt
+
+    data = []
+    for x, y in zip(x_data, y_data):
+        pred = model.predict(x)
+        data.append((x[0], y[0], pred[0]))
+
+    data.sort(key=lambda item: item[0])
+
+    x_values = [item[0] for item in data]
+    y_true_values = [item[1] for item in data]
+    y_pred_values = [item[2] for item in data]
+
+    plt.figure(figsize=(8, 5))
+    plt.scatter(x_values, y_true_values, label="Valeurs réelles")
+    plt.plot(x_values, y_pred_values, label="Prédictions")
+    plt.title(title)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
+
+def plot_multiclass_decision_regions_2d_with_uncertainty(
+    model,
+    x_data,
+    y_data,
+    title: str = "Régions de décision multiclasses",
+    step: float = 0.0025,
+    margin: float = 0.15
+):
+    """
+    Affiche les régions de décision pour une classification multiclasses 2D,
+    avec une zone blanche d'incertitude lorsque les deux meilleures sorties
+    du réseau sont trop proches.
+
+    - step : finesse du quadrillage
+    - margin : différence minimale entre les 2 plus grandes sorties pour
+               attribuer clairement une classe
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import ListedColormap
+
+    x1_min = min(x[0] for x in x_data) - 1
+    x1_max = max(x[0] for x in x_data) + 1
+    x2_min = min(x[1] for x in x_data) - 1
+    x2_max = max(x[1] for x in x_data) + 1
+
+    xx = []
+    yy = []
+
+    x1 = x1_min
+    while x1 <= x1_max:
+        row_x = []
+        row_y = []
+        x2 = x2_min
+        while x2 <= x2_max:
+            row_x.append(x1)
+            row_y.append(x2)
+            x2 += step
+        xx.append(row_x)
+        yy.append(row_y)
+        x1 += step
+
+    zz = []
+    for i in range(len(xx)):
+        row_z = []
+        for j in range(len(xx[i])):
+            pred = model.predict([xx[i][j], yy[i][j]])
+
+            # indices triés par valeur décroissante
+            sorted_indices = sorted(range(len(pred)), key=lambda k: pred[k], reverse=True)
+            best_idx = sorted_indices[0]
+            second_idx = sorted_indices[1]
+
+            best_value = pred[best_idx]
+            second_value = pred[second_idx]
+
+            # zone blanche si incertitude
+            if best_value - second_value < margin:
+                row_z.append(-1)
+            else:
+                row_z.append(best_idx)
+        zz.append(row_z)
+
+    # -1 = blanc, puis classes 0,1,2
+    cmap = ListedColormap(["white", "#440154", "#21918c", "#fde725"])
+
+    # contourf attend des indices 0..N, donc on décale de +1
+    zz_shifted = []
+    for row in zz:
+        zz_shifted.append([v + 1 for v in row])
+
+    plt.figure(figsize=(8, 6))
+    plt.contourf(xx, yy, zz_shifted, levels=[-0.5, 0.5, 1.5, 2.5, 3.5], cmap=cmap, alpha=0.75)
+
+    n_classes = len(y_data[0])
+    markers = ["o", "s", "^", "D", "x", "*"]
+
+    class_points_x = [[] for _ in range(n_classes)]
+    class_points_y = [[] for _ in range(n_classes)]
+
+    for x, y in zip(x_data, y_data):
+        true_class = y.index(max(y))
+        class_points_x[true_class].append(x[0])
+        class_points_y[true_class].append(x[1])
+
+    for c in range(n_classes):
+        plt.scatter(
+            class_points_x[c],
+            class_points_y[c],
+            label=f"Classe {c + 1}",
+            marker=markers[c % len(markers)],
+            s=30
+        )
+
+    plt.title(title)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
