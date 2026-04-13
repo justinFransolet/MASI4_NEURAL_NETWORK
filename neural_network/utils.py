@@ -289,3 +289,51 @@ def plot_5x5_samples_with_predictions(model, x_data, y_data, max_samples: int = 
 
     plt.tight_layout()
     plt.show()
+
+
+def plot_decision_boundary_history(history, x_data, y_data, title: str = "Évolution de la frontière de décision"):
+    """
+    Affiche l'évolution de la frontière de décision au fil des époques
+    pour un modèle à une seule couche et un seul neurone.
+    """
+    plt.figure(figsize=(8, 6))
+
+    points_0_x = []
+    points_0_y = []
+    points_1_x = []
+    points_1_y = []
+
+    for x, y in zip(x_data, y_data):
+        if y[0] == 0:
+            points_0_x.append(x[0])
+            points_0_y.append(x[1])
+        else:
+            points_1_x.append(x[0])
+            points_1_y.append(x[1])
+
+    plt.scatter(points_0_x, points_0_y, label="Classe 0")
+    plt.scatter(points_1_x, points_1_y, label="Classe 1")
+
+    x1_values = [min(x[0] for x in x_data) - 1, max(x[0] for x in x_data) + 1]
+
+    for i, params in enumerate(history.params_history, start=1):
+        bias = params["bias"]
+        w1 = params["weights"][0]
+        w2 = params["weights"][1]
+
+        if abs(w2) > 1e-12:
+            x2_values = [-(bias + w1 * x1) / w2 for x1 in x1_values]
+            plt.plot(x1_values, x2_values, label=f"epoch {i}")
+        elif abs(w1) > 1e-12:
+            x_vertical = -bias / w1
+            plt.axvline(x=x_vertical, label=f"epoch {i}")
+
+    plt.xlim(-0.5, 1.5)
+    plt.ylim(-0.5, 1.5)
+    plt.title(title)
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()

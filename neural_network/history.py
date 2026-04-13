@@ -17,6 +17,10 @@ class History:
     def metrics(self)-> dict:
         return self._metrics
 
+    @property
+    def params_history(self):
+        return self._params_history
+
     def log_params(self, bias: float, weights: list[float]) -> None:
         self._params_history.append({
             "bias": bias,
