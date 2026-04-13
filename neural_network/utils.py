@@ -48,36 +48,6 @@ def plot_metric(history, metric_type: MetricType, title: str):
     plt.tight_layout()
     plt.show()
 
-
-def plot_binary_classification_points(x_data, y_data, title: str = "Classification"):
-    """
-    Affiche un nuage de points pour une classification binaire 2D.
-    """
-    points_0_x = []
-    points_0_y = []
-    points_1_x = []
-    points_1_y = []
-
-    for x, y in zip(x_data, y_data):
-        if y[0] == 0:
-            points_0_x.append(x[0])
-            points_0_y.append(x[1])
-        else:
-            points_1_x.append(x[0])
-            points_1_y.append(x[1])
-
-    plt.figure(figsize=(7, 5))
-    plt.scatter(points_0_x, points_0_y, label="Classe 0")
-    plt.scatter(points_1_x, points_1_y, label="Classe 1")
-    plt.title(title)
-    plt.xlabel("x1")
-    plt.ylabel("x2")
-    plt.grid(True, alpha=0.3)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
 def plot_decision_boundary(model, x_data, y_data, title: str = "Frontière de décision", threshold: float = 0.5):
     """
     Affiche les points d'un dataset binaire 2D et la frontière de décision
@@ -128,7 +98,6 @@ def plot_decision_boundary(model, x_data, y_data, title: str = "Frontière de d�
     plt.tight_layout()
     plt.show()
 
-
 def plot_regression_result(x_data, y_data, y_pred, title: str = "Régression"):
     """
     Affiche les valeurs réelles et les prédictions pour un problème de régression.
@@ -147,7 +116,6 @@ def plot_regression_result(x_data, y_data, y_pred, title: str = "Régression"):
     plt.legend()
     plt.tight_layout()
     plt.show()
-
 
 def print_predictions(model, x_data, y_data=None, classification: bool = True, threshold: float = 0.5):
     """
@@ -168,7 +136,6 @@ def print_predictions(model, x_data, y_data=None, classification: bool = True, t
             else:
                 print(f"x={x} -> y_pred={output}")
 
-
 def print_multiclass_predictions(model, x_data, y_data):
     """
     Affiche les prédictions d'un modèle multiclasses.
@@ -179,7 +146,6 @@ def print_multiclass_predictions(model, x_data, y_data):
         pred_class = y_pred.index(max(y_pred))
         true_class = y_true.index(max(y_true))
         print(f"x={x} -> y_pred={y_pred} -> classe_pred={pred_class} | classe_attendue={true_class}")
-
 
 def multiclass_accuracy(model, x_data, y_data):
     """
@@ -197,7 +163,6 @@ def multiclass_accuracy(model, x_data, y_data):
             correct += 1
 
     return correct / total if total > 0 else 0.0
-
 
 def plot_multiclass_decision_boundaries_2d(model, x_data, y_data, title: str = "Frontières de décision multiclasses", threshold: float = 0.5):
     """
@@ -251,7 +216,6 @@ def plot_multiclass_decision_boundaries_2d(model, x_data, y_data, title: str = "
     plt.tight_layout()
     plt.show()
 
-
 def plot_5x5_samples_with_predictions(model, x_data, y_data, max_samples: int = 12):
     """
     Affiche des échantillons 5x5 avec leur classe vraie et leur classe prédite.
@@ -289,7 +253,6 @@ def plot_5x5_samples_with_predictions(model, x_data, y_data, max_samples: int = 
 
     plt.tight_layout()
     plt.show()
-
 
 def plot_decision_boundary_history(history, x_data, y_data, title: str = "Évolution de la frontière de décision"):
     """
@@ -337,7 +300,6 @@ def plot_decision_boundary_history(history, x_data, y_data, title: str = "Évolu
     plt.legend()
     plt.tight_layout()
     plt.show()
-
 
 def plot_binary_decision_regions_2d(model, x_data, y_data, title: str = "Régions de décision binaires", threshold: float = 0.5, step: float = 0.02):
     """
@@ -401,74 +363,6 @@ def plot_binary_decision_regions_2d(model, x_data, y_data, title: str = "Région
     plt.tight_layout()
     plt.show()
 
-
-def plot_multiclass_decision_regions_2d(model, x_data, y_data, title: str = "Régions de décision multiclasses", step: float = 0.02):
-    """
-    Affiche les régions de décision pour une classification multiclasses 2D.
-    La classe prédite est obtenue avec argmax.
-    """
-    import matplotlib.pyplot as plt
-
-    x1_min = min(x[0] for x in x_data) - 1
-    x1_max = max(x[0] for x in x_data) + 1
-    x2_min = min(x[1] for x in x_data) - 1
-    x2_max = max(x[1] for x in x_data) + 1
-
-    xx = []
-    yy = []
-    x1 = x1_min
-    while x1 <= x1_max:
-        row_x = []
-        row_y = []
-        x2 = x2_min
-        while x2 <= x2_max:
-            row_x.append(x1)
-            row_y.append(x2)
-            x2 += step
-        xx.append(row_x)
-        yy.append(row_y)
-        x1 += step
-
-    zz = []
-    for i in range(len(xx)):
-        row_z = []
-        for j in range(len(xx[i])):
-            pred = model.predict([xx[i][j], yy[i][j]])
-            pred_class = pred.index(max(pred))
-            row_z.append(pred_class)
-        zz.append(row_z)
-
-    plt.figure(figsize=(8, 6))
-    plt.contourf(xx, yy, zz, alpha=0.3)
-
-    n_classes = len(y_data[0])
-    markers = ["o", "s", "^", "D", "x", "*"]
-
-    class_points_x = [[] for _ in range(n_classes)]
-    class_points_y = [[] for _ in range(n_classes)]
-
-    for x, y in zip(x_data, y_data):
-        true_class = y.index(max(y))
-        class_points_x[true_class].append(x[0])
-        class_points_y[true_class].append(x[1])
-
-    for c in range(n_classes):
-        plt.scatter(
-            class_points_x[c],
-            class_points_y[c],
-            label=f"Classe {c + 1}",
-            marker=markers[c % len(markers)]
-        )
-
-    plt.title(title)
-    plt.xlabel("x1")
-    plt.ylabel("x2")
-    plt.grid(True, alpha=0.3)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
-
-
 def plot_regression_curve(model, x_data, y_data, title: str = "Régression non linéaire"):
     """
     Affiche les valeurs réelles et la courbe prédite triée selon x.
@@ -497,8 +391,6 @@ def plot_regression_curve(model, x_data, y_data, title: str = "Régression non l
     plt.legend()
     plt.tight_layout()
     plt.show()
-
-
 
 def plot_multiclass_decision_regions_2d_with_uncertainty(
     model,
@@ -601,7 +493,6 @@ def plot_multiclass_decision_regions_2d_with_uncertainty(
     plt.tight_layout()
     plt.show()
 
-
 def print_dataset_summary(x_train, y_train, x_val, y_val):
     """
     Affiche un résumé des datasets d'apprentissage et de validation.
@@ -618,7 +509,6 @@ def print_dataset_summary(x_train, y_train, x_val, y_val):
     print(f"Répartition learning : {count_by_class(y_train)}")
     print(f"Validation dataset : {len(x_val)} exemples")
     print(f"Répartition validation : {count_by_class(y_val)}")
-
 
 def load_numbered_image_paths(folder_path: str):
     """
@@ -638,7 +528,6 @@ def load_numbered_image_paths(folder_path: str):
 
     files.sort(key=lambda item: item[0])
     return [path for _, path in files]
-
 
 def split_dataset_by_class_with_indices(x_data, y_data, train_per_class: int, validation_per_class: int):
     """
@@ -684,7 +573,6 @@ def split_dataset_by_class_with_indices(x_data, y_data, train_per_class: int, va
             y_val.append(y)
 
     return x_train, y_train, train_indices, x_val, y_val, val_indices
-
 
 def plot_sign_language_predictions_balanced(
     model,
