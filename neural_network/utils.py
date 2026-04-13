@@ -600,3 +600,142 @@ def plot_multiclass_decision_regions_2d_with_uncertainty(
     plt.legend()
     plt.tight_layout()
     plt.show()
+
+
+def print_dataset_summary(x_train, y_train, x_val, y_val):
+    """
+    Affiche un résumé des datasets d'apprentissage et de validation.
+    """
+    def count_by_class(y_data):
+        counts = {}
+        for y in y_data:
+            c = y.index(max(y))
+            counts[c] = counts.get(c, 0) + 1
+        return counts
+
+    print("=== Résumé des datasets ===")
+    print(f"Learning dataset : {len(x_train)} exemples")
+    print(f"Répartition learning : {count_by_class(y_train)}")
+    print(f"Validation dataset : {len(x_val)} exemples")
+    print(f"Répartition validation : {count_by_class(y_val)}")
+
+
+def load_numbered_image_paths(folder_path: str):
+    """
+    Charge les chemins des images d'un dossier et les trie selon
+    leur numéro de fichier : 1.jpg, 2.jpg, ..., 300.jpg
+    """
+    import os
+
+    valid_extensions = (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
+
+    files = []
+    for name in os.listdir(folder_path):
+        if name.lower().endswith(valid_extensions):
+            base_name = os.path.splitext(name)[0]
+            if base_name.isdigit():
+                files.append((int(base_name), os.path.join(folder_path, name)))
+
+    files.sort(key=lambda item: item[0])
+    return [path for _, path in files]
+
+
+def split_dataset_by_class_with_indices(x_data, y_data, train_per_class: int, validation_per_class: int):
+    """
+    Sépare un dataset multiclasses en ensembles d'apprentissage et de validation
+    en conservant les indices d'origine.
+    """
+    class_buckets = {}
+
+    for index, (x, y) in enumerate(zip(x_data, y_data)):
+        class_index = y.index(max(y))
+        if class_index not in class_buckets:
+            class_buckets[class_index] = []
+        class_buckets[class_index].append((index, x, y))
+
+    x_train = []
+    y_train = []
+    train_indices = []
+
+    x_val = []
+    y_val = []
+    val_indices = []
+
+    for class_index in sorted(class_buckets.keys()):
+        samples = class_buckets[class_index]
+
+        if len(samples) < train_per_class + validation_per_class:
+            raise ValueError(
+                f"Pas assez d'exemples pour la classe {class_index}. "
+                f"Requis : {train_per_class + validation_per_class}, disponibles : {len(samples)}"
+            )
+
+        train_samples = samples[:train_per_class]
+        val_samples = samples[train_per_class:train_per_class + validation_per_class]
+
+        for idx, x, y in train_samples:
+            train_indices.append(idx)
+            x_train.append(x)
+            y_train.append(y)
+
+        for idx, x, y in val_samples:
+            val_indices.append(idx)
+            x_val.append(x)
+            y_val.append(y)
+
+    return x_train, y_train, train_indices, x_val, y_val, val_indices
+
+
+def plot_sign_language_predictions_balanced(
+    model,
+    x_data,
+    y_data,
+    image_paths,
+    class_names=None,
+    samples_per_class: int = 3
+):
+    """
+    Affiche un nombre équilibré d'images par classe avec la classe vraie et la classe prédite.
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.image as mpimg
+
+    if class_names is None:
+        class_names = ["A", "B", "C", "D", "E"]
+
+    n_classes = len(class_names)
+
+    selected = {i: [] for i in range(n_classes)}
+
+    for x, y_true, image_path in zip(x_data, y_data, image_paths):
+        true_class = y_true.index(max(y_true))
+        if len(selected[true_class]) < samples_per_class:
+            selected[true_class].append((x, y_true, image_path))
+
+    rows = n_classes
+    cols = samples_per_class
+    fig, axes = plt.subplots(rows, cols, figsize=(3.5 * cols, 3.2 * rows))
+
+    if rows == 1:
+        axes = [axes]
+
+    for r in range(rows):
+        for c in range(cols):
+            ax = axes[r][c] if rows > 1 else axes[c]
+
+            if c < len(selected[r]):
+                x, y_true, image_path = selected[r][c]
+                y_pred = model.predict(x)
+
+                true_class = y_true.index(max(y_true))
+                pred_class = y_pred.index(max(y_pred))
+
+                img = mpimg.imread(image_path)
+                ax.imshow(img)
+                ax.set_title(
+                    f"Vraie: {class_names[true_class]} / Préd: {class_names[pred_class]}"
+                )
+            ax.axis("off")
+
+    plt.tight_layout()
+    plt.show()
