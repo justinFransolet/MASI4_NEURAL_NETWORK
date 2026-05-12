@@ -1,4 +1,4 @@
-﻿# metrics.py
+﻿# neural_network/metrics.py
 
 from enum import Enum
 

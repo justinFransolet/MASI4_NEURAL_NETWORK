@@ -104,14 +104,6 @@ def dot_product(v1: list[float], v2: list[float])-> float:
     """
     return sum(x * y for x, y in zip(v1, v2))
 
-def matrix_transpose(matrix: list[list[float]])-> list[list[float]]:
-    """
-    Transposée d'une matrice.
-    :param matrix: Matrice à transposer. Format : [[x1, x2, ..., xn],[y1,y2,...,yn],...,[z1,z2,...,zn]]
-    :return: Matrice transposée. Format : [[x1,y1,...,z1],[x2,y2,...,z2],...,[xn,yn,...,zn]]
-    """
-    return [[matrix[j][i] for j in range(len(matrix))] for i in range(len(matrix[0]))]
-
 def matrix_confusion(y_true: list[float], y_pred_probs: list[float], threshold=0.5):
     """
     Calcule TP, TN, FP, FN en appliquant un seuil sur les probabilités.

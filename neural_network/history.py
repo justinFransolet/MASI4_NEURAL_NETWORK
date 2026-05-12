@@ -1,4 +1,4 @@
-﻿# neural_network_history.py
+﻿# neural_network/history.py
 
 from .metrics import calculate_mse, calculate_recall, calculate_precision, calculate_accuracy, calculate_roc_auc, calculate_f1_score
 

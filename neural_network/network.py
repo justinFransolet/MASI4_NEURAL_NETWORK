@@ -1,4 +1,5 @@
-﻿#neural_network/neural_network.py
+﻿# neural_network/network.py
+
 from .metrics import MetricType
 from .formula import derivative, matrix_confusion
 from .layer import Layer
